@@ -1,4 +1,4 @@
-import os
+import os, sys
 
 lines = 0
 columns = 1
@@ -59,6 +59,9 @@ class Frame:
         self.Size = Size
         self.beta = beta
         self.flow = False
+
+    def __repr__(self) -> str:
+        return self.Title
 
     def renumber(self):
         out = []
@@ -142,7 +145,11 @@ class Frame:
             self.Lines = []
 
     def user_input(self):
-        userInput = self.prompt()
+        if self.flow:
+            userInput = self.prompt("Flowing >>")
+        else:
+            userInput = self.prompt()
+
         return userInput
 
     def setView(self, linenumber):
@@ -151,8 +158,6 @@ class Frame:
     def reSize(self):
         self.Size = (terminal_lines(), terminal_columns())
 
-
-global current
 
 frames = []
 current = 0
@@ -196,14 +201,23 @@ while frames:
     elif user == "beta":
         root.beta = not root.beta
     elif user == "ls":
-        
         temp = Frame(Title="File listing")
-        break
+        temp.renumber()
         temp.addLines(os.listdir("."))
         temp.renumber()
-        frames.append(temp)
         current = len(frames)
+        frames.append(temp)
+    elif user == "list":
+        temp = Frame(Title="Fraame list")
+        temp.renumber()
+        temp.addLines(map(str, frames))
+        temp.addLines(["Frame listing"])
+        temp.renumber()
+        current = len(frames)
+        frames.append(temp)
+    elif user == "!!":
+        sys.exit("")
     elif user == "shell":
         break
 
-# clear_terminal()
+clear_terminal()
