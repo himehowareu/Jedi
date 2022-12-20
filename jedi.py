@@ -52,7 +52,7 @@ class Frame:
         lines=[],
         start=0,
         beta=False,
-    ) -> None:
+    ):
         self.Lines = lines
         self.Start = start
         self.Title = Title
@@ -86,6 +86,11 @@ class Frame:
                 self.Lines.remove(line)
                 break
 
+    def addLines(self, texts):
+        for line in texts:
+            self.Lines.append(str(len(self.Lines) + 1 * 10) + " " + line)
+        self.renumber()
+
     def addNumberLine(self, text):
         for line in self.Lines:
             if line.split(" ")[0] == text.split(" ")[0]:
@@ -94,7 +99,7 @@ class Frame:
         self.Lines.append(text)
 
     def draw_Title(self):
-        innerSpace = (len(self.Title) + 3 + len(str(len(self.Lines)))) * 2
+        innerSpace = 6 + (len(self.Title) + 3 + len(str(len(self.Lines))))
         Title_Bar = (
             (self.Title + " ~ " + str(len(self.Lines)))
             .center(innerSpace, " ")
@@ -118,11 +123,8 @@ class Frame:
     def loadFile(self, path):
         self.Title = path
         self.Lines = []
-        linenumber = 10
         with open(path, "r") as file:
-            for line in file.readlines():
-                self.addNumberLine(str(linenumber) + " " + line)
-                linenumber += 10
+            self.addLines(file.readlines())
 
     def saveFile(self, path):
         textLines = list(map(lambda x: (" ".join(x.split(" ")[1:])), self.Lines))
@@ -150,11 +152,15 @@ class Frame:
         self.Size = (terminal_lines(), terminal_columns())
 
 
-root = Frame()
+global current
 
-running = True
+frames = []
+current = 0
 
-while running:
+frames.append(Frame())
+
+while frames:
+    root = frames[current]
     root.draw()
     user = root.user_input()
     if root.flow:
@@ -167,7 +173,8 @@ while running:
         root.renumber()
         root.flow = True
     elif user == "exit":
-        running = False
+        frames.remove(root)
+        current = 0
     elif user.split(" ")[0].isnumeric():
         root.addNumberLine(user + "\n")
     elif user == "renumber":
@@ -188,6 +195,15 @@ while running:
         root.setView("10")
     elif user == "beta":
         root.beta = not root.beta
+    elif user == "ls":
+        
+        temp = Frame(Title="File listing")
+        break
+        temp.addLines(os.listdir("."))
+        temp.renumber()
+        frames.append(temp)
+        current = len(frames)
+    elif user == "shell":
+        break
 
-
-clear_terminal()
+# clear_terminal()
