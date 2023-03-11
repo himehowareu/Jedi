@@ -11,8 +11,7 @@ class Fame();
         self.commands=commands
 
 
-
-
+# some functions for use with the new setup
 
 
 if __name__ == "__main__":
