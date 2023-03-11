@@ -1,6 +1,6 @@
 
 def clear(frame):
-	pass
+    pass
 
 def move_cursor(position):
     line, column = position
@@ -14,20 +14,20 @@ def sort_Lines(rawLines):
     rawLines.sort(key=lambda x: int(x.split(" ")[0]))
     return rawLines
 
- def renumber(self):
- 	out = []
-	for num, line in enumerate(self.Lines):
-		newLine = [str((num + 1) * 10)] + line.split(" ")[1:]
-		out.append(" ".join(newLine))
-	self.Lines = out
+def renumber(self):
+    out = []
+    for num, line in enumerate(self.Lines):
+        newLine = [str((num + 1) * 10)] + line.split(" ")[1:]
+        out.append(" ".join(newLine))
+    self.Lines = out
 
-	def turnicate(self, text):
-		if self.beta:
-			text = formate(text)
-		if len(text) > self.Size[columns]:
-			return text[: self.Size[columns] - 1] + "~"
-		else:
-			return text
+    def turnicate(self, text):
+        if self.beta:
+            text = formate(text)
+        if len(text) > self.Size[columns]:
+            return text[: self.Size[columns] - 1] + "~"
+        else:
+            return text
 
     def deleteLine(self, number):
         for line in self.Lines:
