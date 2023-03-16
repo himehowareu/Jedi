@@ -1,3 +1,15 @@
+class Line:
+    def __init__(self, lineNumber=0, text=""):
+        self.text = text
+        self.lineNumber = lineNumber
+
+    def __str__(self) -> str:
+        return str(self.lineNumber) + " " + self.text
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+
 def move_cursor(position):
     column, line = position
     print("\033[%d;%dH" % (column, line), end="")
@@ -14,13 +26,13 @@ def put(position, text):
 
 
 def sort_Lines(rawLines):
-    rawLines.sort(key=lambda x: int(x.split(" ")[0]))
+    rawLines.sort(key=lambda x: x.lineNumber)
     return rawLines
 
 
 def findIndex(lines, number):
     for n, line in enumerate(lines):
-        if line.split(" ")[0] == number:
+        if line.lineNumber == number:
             return n
 
 
@@ -33,29 +45,29 @@ def viewPort(frame):
 def renumber(frame):
     out = []
     for num, line in enumerate(frame.lines):
-        newLine = [str((num + 1) * 10)] + line.split(" ")[1:]
-        out.append(" ".join(newLine))
+        out.append(Line((num + 1) * 10, line.text))
     frame.lines = out
 
 
 def deleteLine(frame, number):
     for line in frame.lines:
-        if line.split(" ")[0] == number:
+        if line.lineNumber == number:
             frame.lines.remove(line)
             break
 
 
 def addLines(frame, texts):
     for line in texts:
-        frame.lines.append(str(len(frame.lines) + 1 * 10) + " " + line)
+        frame.lines.append(Line(len(frame.lines) + 1 * 10, line))
 
 
 def addNumberLine(frame, number, text):
     for line in frame.lines:
-        if line.split(" ")[0] == number:
+        if line.lineNumber == number:
             frame.lines.remove(line)
             break
-    frame.lines.append(number + " " + text)
+    frame.lines.append(Line(number, text))
+
 
 def unnumberedLines(frame):
-    return list(map(lambda x: (" ".join(x.split(" ")[1:])), frame.lines))
+    return list(map(lambda x: (" ".join(x.text)), frame.lines))

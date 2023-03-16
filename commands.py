@@ -3,6 +3,7 @@ import JediTricks
 
 def addNumberedLine(frame, groups):
     (number, line) = groups
+    number=int(number)
     JediTricks.addNumberLine(frame, number, line)
 
 
@@ -40,12 +41,12 @@ def saveFile(frame, groups):
 
 def deleteLine(frame, groups):
     start = int(groups[0])
-    if groups[1]:
+    if groups[1] != None:
         stop = int(groups[1])
         for lineNumber in range(start, stop + 1):
-            JediTricks.deleteLine(frame, str(lineNumber))
+            JediTricks.deleteLine(frame, lineNumber)
     else:
-        JediTricks.deleteLine(frame, str(start))
+        JediTricks.deleteLine(frame, start)
 
 
 editor = [

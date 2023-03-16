@@ -39,7 +39,8 @@ class Frame:
         )
         JediTricks.put((0, 0), Title_Bar)
 
-    def turnicate(self, text):
+    def turnicate(self, line):
+        text=str(line)
         # if self.beta:
         #     text = formate(text)
         if len(text) > self.size[columns]:
