@@ -102,19 +102,6 @@ if __name__ == "__main__":
     #     elif user == "flow":
     #         root.renumber()
     #         root.flow = True
-    #     elif user == "exit":
-    #         frames.remove(root)
-    #         current = 0
-    #     elif user.split(" ")[0].isnumeric():
-    #         root.addNumberLine(user + "\n")
-    #     elif user == "renumber":
-    #         root.renumber()
-    #     elif user.startswith("open"):
-    #         root.loadFile(user.split(" ")[1])
-    #     elif user.startswith("delete"):
-    #         root.deleteLine(user.split(" ")[1])
-    #     elif user.startswith("save"):
-    #         root.saveFile(user.split(" ")[1])
     #     elif user == "clear":
     #         root.clear()
     #     elif user.startswith("view") or user.startswith("goto"):

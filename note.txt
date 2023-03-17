@@ -1,5 +1,12 @@
-goto
-clear
-home
-flow
-view
+
+        self.draw_Title()
+        self.draw_Lines()
+
+    def clear(self):
+        if self.prompt("clear lines? [yes\\no]") == "yes":
+            self.Lines = []
+
+    def user_input(self):
+        if self.flow:
+            userInput = self.prompt("Flowing >>")
+        else:

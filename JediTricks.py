@@ -70,4 +70,4 @@ def addNumberLine(frame, number, text):
 
 
 def unnumberedLines(frame):
-    return list(map(lambda x: (" ".join(x.text)), frame.lines))
+    return list(map((lambda x: (x.text)), frame.lines))

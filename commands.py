@@ -3,7 +3,7 @@ import JediTricks
 
 def addNumberedLine(frame, groups):
     (number, line) = groups
-    number=int(number)
+    number = int(number)
     JediTricks.addNumberLine(frame, number, line)
 
 
@@ -22,7 +22,7 @@ def openFile(frame, groups):
         path = groups[0]
 
     with open(path, "r") as file:
-        lines = file.readlines()
+        lines = file.read().split("\n")
         frame.lines = []
         JediTricks.addLines(frame, lines)
         JediTricks.renumber(frame)
@@ -49,6 +49,13 @@ def deleteLine(frame, groups):
         JediTricks.deleteLine(frame, start)
 
 
+def clearLines(frame, groups):
+    if groups[0] == "yes":
+        frame.lines = []
+    elif frame.prompt("Clear lines [yes/no] ? ") == "yes":
+        frame.lines = []
+
+
 editor = [
     ("exit", exitEditor),
     ("(\d+) (.*)", addNumberedLine),
@@ -56,4 +63,5 @@ editor = [
     ("open *(.*)", openFile),
     ("save *(.*)", saveFile),
     ("(?:del|delete) (\d+)(?:$| (\d+))", deleteLine),
+    ("clear *(.*)", clearLines),
 ]
