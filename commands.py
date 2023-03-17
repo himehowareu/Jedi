@@ -56,6 +56,10 @@ def clearLines(frame, groups):
         frame.lines = []
 
 
+def gotoLine(frame, groups):
+    frame.start = int(groups[0]) // 10 + 1
+
+
 editor = [
     ("exit", exitEditor),
     ("(\d+) (.*)", addNumberedLine),
@@ -64,4 +68,5 @@ editor = [
     ("save *(.*)", saveFile),
     ("(?:del|delete) (\d+)(?:$| (\d+))", deleteLine),
     ("clear *(.*)", clearLines),
+    ("(?:view|goto) (\d+)", gotoLine),
 ]

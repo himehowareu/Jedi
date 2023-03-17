@@ -20,6 +20,7 @@ class Frame:
         commands=[],
         lines=[],
         visible=True,
+        start=0,
     ):
         self.name = name
         self.commands = commands
@@ -29,6 +30,7 @@ class Frame:
         if size == (0, 0):
             size = os.get_terminal_size()
         self.size = size
+        self.start = start
 
     def draw_Title(self):
         innerSpace = 6 + (len(self.name) + 3 + len(str(len(self.lines))))
@@ -40,7 +42,7 @@ class Frame:
         JediTricks.put((0, 0), Title_Bar)
 
     def turnicate(self, line):
-        text=str(line)
+        text = str(line)
         # if self.beta:
         #     text = formate(text)
         if len(text) > self.size[columns]:
@@ -49,7 +51,7 @@ class Frame:
             return text
 
     def draw_Lines(self):
-        sorted = JediTricks.viewPort(self)
+        sorted = JediTricks.viewPort(self)[self.start :]
         for y, line in enumerate(sorted):
             if y >= self.size[lines] - 2:
                 break
@@ -102,8 +104,6 @@ if __name__ == "__main__":
     #     elif user == "flow":
     #         root.renumber()
     #         root.flow = True
-    #     elif user == "clear":
-    #         root.clear()
     #     elif user.startswith("view") or user.startswith("goto"):
     #         root.setView(user.split(" ")[1])
     #     elif user == "resize":
