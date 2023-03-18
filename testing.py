@@ -6,6 +6,7 @@
 import JediTricks
 import os, sys, re
 from commands import editor as editorCommands
+from commands import Frame as frameCommands
 
 lines = 1
 columns = 0
@@ -21,6 +22,7 @@ class Frame:
         lines=[],
         visible=True,
         start=0,
+        flow=False,
     ):
         self.name = name
         self.commands = commands
@@ -31,6 +33,8 @@ class Frame:
             size = os.get_terminal_size()
         self.size = size
         self.start = start
+        self.flow = flow
+        self.error = ""
 
     def draw_Title(self):
         innerSpace = 6 + (len(self.name) + 3 + len(str(len(self.lines))))
@@ -56,6 +60,12 @@ class Frame:
             if y >= self.size[lines] - 2:
                 break
             JediTricks.put((y + 2, 0), self.turnicate(line))
+        if self.error != "":
+            JediTricks.put(
+                (self.size[lines] - 2, (self.size[columns] - len(self.error)) // 2),
+                self.error,
+            )
+            self.error = ""
 
     def prompt(self, text="input >"):
         pos = (self.size[lines], 0)
@@ -67,51 +77,69 @@ class Frame:
         self.draw_Title()
         self.draw_Lines()
 
-    def exit(self):
-        exit()
-
     def send(self, userInput):
         for signature, command in self.commands:
             if groupedInput := re.match(signature, userInput):
                 command(self, groupedInput.groups())
+                break
+        else:
+            for signature, command in self.managerCommands:
+                if groupedInput := re.match(signature, userInput):
+                    command(self.manager, groupedInput.groups())
+                    break
+            else:
+                if userInput != "":
+                    self.error = userInput + ": command not found"
+
+
+class frameManager:
+    def __init__(self, commands):
+        self.frames = []
+        self.activeFrame = -1
+        self.commands = commands
+
+    def addFrame(self, frame):
+        frame.managerCommands = self.commands
+        frame.manager = self
+        self.frames.append(frame)
+        self.activeFrame = self.frames.index(frame)
+
+    def newFrame(self):
+        temp = Frame()
+        self.addFrame(temp)
+        return temp
+
+    def active(self):
+        return self.frames[self.activeFrame]
+
+    def remove(self, frame):
+        if self.frames.index(frame) == len(self.frames) - 1:
+            self.activeFrame -= 1
+        self.frames.remove(frame)
 
 
 # some functions for use with the new setup
 
 if __name__ == "__main__":
-    frames = []
+    manager = frameManager(frameCommands)
     tempFrame = Frame("main")
     tempFrame.commands.extend(editorCommands)
-    frames.append(tempFrame)
-    activeFrame = 0
-    while True:
-        for frame in frames:
+    manager.addFrame(tempFrame)
+    while manager.activeFrame != -1:
+        activeFrame = manager.active()
+        for frame in manager.frames:
             if frame.visible:
                 frame.draw()
-        userInput = frames[activeFrame].prompt()
-        frames[activeFrame].send(userInput)
+        if activeFrame.flow:
+            userInput = activeFrame.prompt("Flow> ")
+            if userInput == "??":
+                activeFrame.flow = False
+                continue
+            JediTricks.addLine(activeFrame, userInput)
+        else:
+            userInput = activeFrame.prompt()
+            activeFrame.send(userInput)
 
-    # while frames:
-    #     root = frames[current]
-    #     root.draw()
-    #     user = root.user_input()
-    #     if root.flow:
-    #         if user == "??":
-    #             root.flow = False
-    #         else:
-    #             linenumber = len(root.Lines) + 1 * 10
-    #             root.addNumberLine(str(linenumber) + " " + user + "\n")
-    #     elif user == "flow":
-    #         root.renumber()
-    #         root.flow = True
-    #     elif user.startswith("view") or user.startswith("goto"):
-    #         root.setView(user.split(" ")[1])
-    #     elif user == "resize":
-    #         root.reSize()
-    #     elif user == "home":
-    #         root.setView("10")
-    #     elif user == "beta":
-    #         root.beta = not root.beta
     #     elif user == "ls":
     #         temp = Frame(Title="File listing")
     #         temp.renumber()

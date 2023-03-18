@@ -56,9 +56,13 @@ def deleteLine(frame, number):
             break
 
 
+def addLine(frame, line):
+    frame.lines.append(Line(len(frame.lines) + 1 * 10, line))
+
+
 def addLines(frame, texts):
     for line in texts:
-        frame.lines.append(Line(len(frame.lines) + 1 * 10, line))
+        addLine(frame, line)
 
 
 def addNumberLine(frame, number, text):
