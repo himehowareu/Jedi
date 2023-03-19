@@ -2,17 +2,17 @@ import JediTricks
 import os
 
 
-def addNumberedLine(frame, groups):
+def command_addNumberedLine(frame, groups):
     (number, line) = groups
     number = int(number)
     JediTricks.addNumberLine(frame, number, line)
 
 
-def renumber(frame, groups):
+def command_renumber(frame, groups):
     JediTricks.renumber(frame)
 
 
-def openFile(frame, groups):
+def command_openFile(frame, groups):
     if groups[0] == "":
         path = frame.prompt("Files ? >")
     else:
@@ -28,7 +28,7 @@ def openFile(frame, groups):
         JediTricks.renumber(frame)
 
 
-def saveFile(frame, groups):
+def command_saveFile(frame, groups):
     if groups[0] == "":
         path = frame.prompt("Save Files As ? >")
     else:
@@ -39,7 +39,7 @@ def saveFile(frame, groups):
         file.writelines(lines)
 
 
-def deleteLine(frame, groups):
+def command_deleteLine(frame, groups):
     start = int(groups[0])
     if groups[1] != None:
         stop = int(groups[1])
@@ -49,14 +49,14 @@ def deleteLine(frame, groups):
         JediTricks.deleteLine(frame, start)
 
 
-def clearLines(frame, groups):
+def command_clearLines(frame, groups):
     if groups[0] == "yes":
         frame.lines = []
     elif frame.prompt("Clear lines [yes/no] ? ") == "yes":
         frame.lines = []
 
 
-def gotoLine(frame, groups):
+def command_gotoLine(frame, groups):
     target = int(groups[0]) // 10 - 1
     totalLines = len(frame.lines)
     if target > totalLines:
@@ -64,11 +64,11 @@ def gotoLine(frame, groups):
     frame.start = target
 
 
-def gotoHome(frame, groups):
+def command_gotoHome(frame, groups):
     frame.start = 0
 
 
-def replace(frame, groups):
+def command_replace(frame, groups):
     if groups[0] == "":
         target = frame.prompt("what would you like to replace ?")
     else:
@@ -82,35 +82,35 @@ def replace(frame, groups):
         frame.lines[lineNumber].text = line.text.replace(target, to)
 
 
-def enableFlow(frame, groups):
+def command_enableFlow(frame, groups):
     frame.flow = True
 
 
-editor = [
-    ("^(\d+) (.*)$", addNumberedLine),
-    ("^renumber$", renumber),
-    ("^open *(.*)$", openFile),
-    ("^save *(.*)$", saveFile),
-    ("^(?:del|delete) (\d+)(?:$| (\d+))$", deleteLine),
-    ("^clear *(.*)$", clearLines),
-    ("^(?:view|goto) (\d+)$", gotoLine),
-    ("^home$", gotoHome),
-    ("^replace *\\b(\S*) *\\b(\S*)$", replace),
-    ("^flow$", enableFlow),
+command_editor = [
+    ("^(\d+) (.*)$", command_addNumberedLine),
+    ("^renumber$", command_renumber),
+    ("^open *(.*)$", command_openFile),
+    ("^save *(.*)$", command_saveFile),
+    ("^(?:del|delete) (\d+)(?:$| (\d+))$", command_deleteLine),
+    ("^clear *(.*)$", command_clearLines),
+    ("^(?:view|goto) (\d+)$", command_gotoLine),
+    ("^home$", command_gotoHome),
+    ("^replace *\\b(\S*) *\\b(\S*)$", command_replace),
+    ("^flow$", command_enableFlow),
 ]
 
 
-def listFiles(manager, groups):
+def command_listFiles(manager, groups):
     frame = manager.newFrame()
     frame.name = "files"
     JediTricks.addLines(frame, os.listdir("."))
 
 
-def exitEditor(manager, groups):
+def command_exitEditor(manager, groups):
     manager.remove(manager.active())
 
 
-Frame = [
-    ("^ls$", listFiles),
-    ("^exit$", exitEditor),
+command_Frame = [
+    ("^ls$", command_listFiles),
+    ("^exit$", command_exitEditor),
 ]
