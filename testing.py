@@ -198,10 +198,6 @@ class frameManager:
         self.frames.remove(frame)
 
 
-# import JediTricks
-# import os
-
-
 def command_addNumberedLine(frame, groups):
     (number, line) = groups
     number = int(number)
