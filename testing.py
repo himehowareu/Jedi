@@ -3,7 +3,7 @@
 # rewriting Jedi to be extenable
 
 
-import JediTricks
+# import JediTricks
 import os, sys, re
 
 # from commands import editor as editorCommands
@@ -11,6 +11,85 @@ import os, sys, re
 
 lines = 1
 columns = 0
+
+
+class Line:
+    def __init__(self, lineNumber=0, text=""):
+        self.text = text
+        self.lineNumber = lineNumber
+
+    def __str__(self) -> str:
+        return str(self.lineNumber) + " " + self.text
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+
+def JT_move_cursor(position):
+    column, line = position
+    print("\033[%d;%dH" % (column, line), end="")
+
+
+def JT_clear_terminal():
+    print(chr(27) + "[2J", end="")
+    JT_move_cursor((0, 0))
+
+
+def JT_put(position, text):
+    JT_move_cursor(position)
+    print(text, end="")
+
+
+def JT_sort_Lines(rawLines):
+    rawLines.sort(key=lambda x: x.lineNumber)
+    return rawLines
+
+
+def JT_findIndex(lines, number):
+    for n, line in enumerate(lines):
+        if line.lineNumber == number:
+            return n
+
+
+def JT_viewPort(frame):
+    lines = frame.lines
+    start = frame.startView
+    return JT_sort_Lines(lines)[JT_findIndex(lines, start) :]
+
+
+def JT_renumber(frame):
+    out = []
+    for num, line in enumerate(frame.lines):
+        out.append(Line((num + 1) * 10, line.text))
+    frame.lines = out
+
+
+def JT_deleteLine(frame, number):
+    for line in frame.lines:
+        if line.lineNumber == number:
+            frame.lines.remove(line)
+            break
+
+
+def JT_addLine(frame, line):
+    frame.lines.append(Line(len(frame.lines) + 1 * 10, line))
+
+
+def JT_addLines(frame, texts):
+    for line in texts:
+        JT_addLine(frame, line)
+
+
+def JT_addNumberLine(frame, number, text):
+    for line in frame.lines:
+        if line.lineNumber == number:
+            frame.lines.remove(line)
+            break
+    frame.lines.append(Line(number, text))
+
+
+def JT_unnumberedLines(frame):
+    return list(map((lambda x: (x.text)), frame.lines))
 
 
 class Frame:
@@ -44,7 +123,7 @@ class Frame:
             .center(innerSpace, " ")
             .center(self.size[columns], "=")
         )
-        JediTricks.put((0, 0), Title_Bar)
+        JT_put((0, 0), Title_Bar)
 
     def turnicate(self, line):
         text = str(line)
@@ -56,13 +135,13 @@ class Frame:
             return text
 
     def draw_Lines(self):
-        sorted = JediTricks.viewPort(self)[self.start :]
+        sorted = JT_viewPort(self)[self.start :]
         for y, line in enumerate(sorted):
             if y >= self.size[lines] - 2:
                 break
-            JediTricks.put((y + 2, 0), self.turnicate(line))
+            JT_put((y + 2, 0), self.turnicate(line))
         if self.error != "":
-            JediTricks.put(
+            JT_put(
                 (self.size[lines] - 2, (self.size[columns] - len(self.error)) // 2),
                 self.error,
             )
@@ -70,11 +149,11 @@ class Frame:
 
     def prompt(self, text="input >"):
         pos = (self.size[lines], 0)
-        JediTricks.move_cursor(pos)
+        JT_move_cursor(pos)
         return input(text)
 
     def draw(self):
-        JediTricks.clear_terminal()
+        JT_clear_terminal()
         self.draw_Title()
         self.draw_Lines()
 
@@ -119,18 +198,18 @@ class frameManager:
         self.frames.remove(frame)
 
 
-import JediTricks
-import os
+# import JediTricks
+# import os
 
 
 def command_addNumberedLine(frame, groups):
     (number, line) = groups
     number = int(number)
-    JediTricks.addNumberLine(frame, number, line)
+    JT_addNumberLine(frame, number, line)
 
 
 def command_renumber(frame, groups):
-    JediTricks.renumber(frame)
+    JT_renumber(frame)
 
 
 def command_openFile(frame, groups):
@@ -145,8 +224,8 @@ def command_openFile(frame, groups):
     with open(path, "r") as file:
         lines = file.read().split("\n")
         frame.lines = []
-        JediTricks.addLines(frame, lines)
-        JediTricks.renumber(frame)
+        JT_addLines(frame, lines)
+        JT_renumber(frame)
 
 
 def command_saveFile(frame, groups):
@@ -154,7 +233,7 @@ def command_saveFile(frame, groups):
         path = frame.prompt("Save Files As ? >")
     else:
         path = groups[0]
-    lines = JediTricks.unnumberedLines(frame)
+    lines = JT_unnumberedLines(frame)
     lines = "\n".join(lines)
     with open(path, "w+") as file:
         file.writelines(lines)
@@ -165,9 +244,9 @@ def command_deleteLine(frame, groups):
     if groups[1] != None:
         stop = int(groups[1])
         for lineNumber in range(start, stop + 1):
-            JediTricks.deleteLine(frame, lineNumber)
+            JT_deleteLine(frame, lineNumber)
     else:
-        JediTricks.deleteLine(frame, start)
+        JT_deleteLine(frame, start)
 
 
 def command_clearLines(frame, groups):
@@ -224,7 +303,7 @@ command_editor = [
 def command_listFiles(manager, groups):
     frame = manager.newFrame()
     frame.name = "files"
-    JediTricks.addLines(frame, os.listdir("."))
+    JT_addLines(frame, os.listdir("."))
 
 
 def command_exitEditor(manager, groups):
@@ -240,41 +319,21 @@ command_Frame = [
 # some functions for use with the new setup
 
 if __name__ == "__main__":
-    manager = frameManager(command_editor)
+    manager = frameManager(command_Frame)
     tempFrame = Frame("main")
-    tempFrame.commands.extend(command_Frame)
+    tempFrame.commands.extend(command_editor)
     manager.addFrame(tempFrame)
     while manager.activeFrame != -1:
         activeFrame = manager.active()
-        for frame in manager.frames:
-            if frame.visible:
-                frame.draw()
+        for main_frame in manager.frames:
+            if main_frame.visible:
+                main_frame.draw()
         if activeFrame.flow:
             userInput = activeFrame.prompt("Flow> ")
             if userInput == "??":
                 activeFrame.flow = False
                 continue
-            JediTricks.addLine(activeFrame, userInput)
+            JT_addLine(activeFrame, userInput)
         else:
             userInput = activeFrame.prompt()
             activeFrame.send(userInput)
-
-    #     elif user == "ls":
-    #         temp = Frame(Title="File listing")
-    #         temp.renumber()
-    #         temp.addLines(os.listdir("."))
-    #         temp.renumber()
-    #         current = len(frames)
-    #         frames.append(temp)
-    #     elif user == "list":
-    #         temp = Frame(Title="Fraame list")
-    #         temp.renumber()
-    #         temp.addLines(map(str, frames))
-    #         temp.addLines(["Frame listing"])
-    #         temp.renumber()
-    #         current = len(frames)
-    #         frames.append(temp)
-    #     elif user == "!!":
-    #         sys.exit("")
-    #     elif user == "shell":
-    #         break
