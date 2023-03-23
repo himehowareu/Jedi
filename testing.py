@@ -17,9 +17,13 @@ if debuging:
     import logging
     logging.basicConfig(filename="debug.log",level=logging.INFO)
 
-def debug(text):
-    if debuging:
-        logging.info(text)
+
+def debug(func):
+    def doStuff(*args, **kwargs):
+        if debuging:
+            logging.info(str(args), str(kwargs))
+        func(*args, **kwargs)
+    return doStuff
 
 
 class Line:
