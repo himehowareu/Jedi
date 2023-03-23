@@ -12,6 +12,15 @@ import os, sys, re
 lines = 1
 columns = 0
 
+debuging = True
+if debuging:
+    import logging
+    logging.basicConfig(filename="debug.log",level=logging.INFO)
+
+def debug(text):
+    if debuging:
+        logging.info(text)
+
 
 class Line:
     def __init__(self, lineNumber=0, text=""):
