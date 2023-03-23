@@ -125,7 +125,7 @@ class Frame:
         )
         JT_put((0, 0), Title_Bar)
 
-    def turnicate(self, line):
+    def tunicate(self, line):
         text = str(line)
         # if self.beta:
         #     text = formate(text)
@@ -139,7 +139,7 @@ class Frame:
         for y, line in enumerate(sorted):
             if y >= self.size[lines] - 2:
                 break
-            JT_put((y + 2, 0), self.turnicate(line))
+            JT_put((y + 2, 0), self.tunicate(line))
         if self.error != "":
             JT_put(
                 (self.size[lines] - 2, (self.size[columns] - len(self.error)) // 2),
@@ -185,12 +185,15 @@ class frameManager:
         self.activeFrame = self.frames.index(frame)
 
     def newFrame(self):
-        temp = Frame()
+        temp = Frame("temp")
         self.addFrame(temp)
-        return temp
+        return self.frames.index(temp)
 
     def active(self):
-        return self.frames[self.activeFrame]
+        return self.getFrame(self.activeFrame)
+
+    def getFrame(self, number):
+        return self.frames[number]
 
     def remove(self, frame):
         if self.frames.index(frame) == len(self.frames) - 1:
@@ -297,7 +300,8 @@ command_editor = [
 
 
 def command_listFiles(manager, groups):
-    frame = manager.newFrame()
+    frameID = manager.newFrame()
+    frame = manager.getFrame(frameID)
     frame.name = "files"
     JT_addLines(frame, os.listdir("."))
 
@@ -316,9 +320,9 @@ command_Frame = [
 
 if __name__ == "__main__":
     manager = frameManager(command_Frame)
-    tempFrame = Frame("main")
-    tempFrame.commands.extend(command_editor)
-    manager.addFrame(tempFrame)
+    _Frame = Frame("main")
+    _Frame.commands.extend(command_editor)
+    manager.addFrame(_Frame)
     while manager.activeFrame != -1:
         activeFrame = manager.active()
         for main_frame in manager.frames:
