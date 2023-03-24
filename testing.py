@@ -111,7 +111,13 @@ def JT_unnumberedLines(frame):
 
 
 def JT_help(commands):
-    pass
+    out = []
+    for command in commands:
+        try:
+            out.append(command[2] + " " + command[1].__doc__)
+        except:
+            out.append(str(command))
+    return out
 
 
 class Frame:
@@ -184,12 +190,12 @@ class Frame:
         self.draw_Lines()
 
     def send(self, userInput):
-        for signature, command in self.commands:
+        for signature, command, name in self.commands:
             if groupedInput := re.match(signature, userInput):
                 command(self, groupedInput.groups())
                 break
         else:
-            for signature, command in self.managerCommands:
+            for signature, command, name in self.managerCommands:
                 if groupedInput := re.match(signature, userInput):
                     command(self.manager, groupedInput.groups())
                     break
@@ -235,6 +241,7 @@ class frameManager:
 
 
 def command_addNumberedLine(frame, groups):
+    """adds a line at the line number to the current frame"""
     (number, line) = groups
     number = int(number)
     JT_addNumberLine(frame, number, line)
@@ -324,25 +331,30 @@ def command_replace(frame, groups):
 
 
 def command_enableFlow(frame, groups):
-    """this command lets you continusely type until you enter ??"""
+    """this command lets you continually type until you enter ??"""
     frame.flow = True
 
 
 command_editor = [
-    ("^(\d+) (.*)$", command_addNumberedLine),
-    ("^renumber$", command_renumber),
-    ("^open *(.*)$", command_openFile),
-    ("^save *(.*)$", command_saveFile),
-    ("^(?:del|delete) (\d+)(?:$| (\d+))$", command_deleteLine),
-    ("^clear *(.*)$", command_clearLines),
-    ("^(?:view|goto) (\d+)$", command_gotoLine),
-    ("^home$", command_gotoHome),
-    ("^replace *\\b(\S*) *\\b(\S*)$", command_replace),
-    ("^flow$", command_enableFlow),
+    ("^(\d+) (.*)$", command_addNumberedLine, "10 text"),
+    ("^renumber$", command_renumber, "renumber"),
+    ("^open *(.*)$", command_openFile, "open [fileName]"),
+    ("^save *(.*)$", command_saveFile, "save [fileName]"),
+    (
+        "^(?:del|delete) (\d+)(?:$| (\d+))$",
+        command_deleteLine,
+        "del[ete] line [To Line]",
+    ),
+    ("^clear *(.*)$", command_clearLines, "clear"),
+    ("^(?:view|goto) (\d+)$", command_gotoLine, "goto Line"),
+    ("^home$", command_gotoHome, "home"),
+    ("^replace *\\b(\S*) *\\b(\S*)$", command_replace, "replace [Target] [TO]"),
+    ("^flow$", command_enableFlow, "flow"),
 ]
 
 
 def command_listFiles(manager, groups):
+    """makes a new frame with a list of files in the current folder"""
     frameID = manager.newFrame()
     frame = manager.getFrame(frameID)
     frame.name = "files"
@@ -350,21 +362,30 @@ def command_listFiles(manager, groups):
 
 
 def command_exitEditor(manager, groups):
+    """exits the editor"""
+    exit("need to make better")
+
+
+def command_exitFrame(manaager, groups):
+    """closes the current frame"""
     manager.remove(manager.active())
 
 
 def command_help(manager, groups):
+    """displays this help page"""
     frameID = manager.newFrame()
     frame = manager.getFrame(frameID)
     frame.name = "help"
     JT_addLine(frame, "Editor commands ")
     JT_addLines(frame, JT_help(command_editor))
-    JT_addlines(JT_help(command_Frame))
+    JT_addLines(frame, JT_help(command_Frame))
 
 
 command_Frame = [
-    ("^ls$", command_listFiles),
-    ("^exit$", command_exitEditor),
+    ("^ls$", command_listFiles, "ls"),
+    ("^!!$", command_exitFrame, "!!"),
+    ("^exit$", command_exitEditor, "exit"),
+    ("^help$", command_help, "help"),
 ]
 
 
