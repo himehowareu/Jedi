@@ -124,7 +124,6 @@ class Frame:
     def __init__(
         self,
         name="New Frame",
-        position=(0, 0),
         size=(0, 0),
         commands=[],
         visible=False,
@@ -362,12 +361,12 @@ def command_listFiles(manager, groups):
 
 
 def command_exitEditor(manager, groups):
-    """exits the editor"""
+    """closes the current frame"""
     exit("need to make better")
 
 
-def command_exitFrame(manaager, groups):
-    """closes the current frame"""
+def command_exitFrame(manager, groups):
+    """exits the editor"""
     manager.remove(manager.active())
 
 
@@ -381,10 +380,39 @@ def command_help(manager, groups):
     JT_addLines(frame, JT_help(command_Frame))
 
 
+def command_listFrames(manager, groups):
+    """displays all the frames open"""
+    frameID = manager.newFrame()
+    newFrame = manager.getFrame(frameID)
+    newFrame.name = "all frames"
+    for frame in manager.frames:
+        JT_addLine(newFrame, frame.name)
+
+
+def command_newFrame(manager, groups):
+    """opens a new frame and optionally with file loaded"""
+    frameID = manager.newFrame()
+    newFrame = manager.getFrame(frameID)
+    newFrame.name = "new frame"
+    if groups[0] != "":
+        path = groups[0]
+        if not os.path.exists(path):
+            manager.remove(newFrame)
+            manager.active().error = "File not found"
+            return
+        with open(path, "r") as file:
+            lines = file.read().split("\n")
+            newFrame.name = path
+            JT_addLines(newFrame, lines)
+            JT_renumber(newFrame)
+
+
 command_Frame = [
     ("^ls$", command_listFiles, "ls"),
-    ("^!!$", command_exitFrame, "!!"),
-    ("^exit$", command_exitEditor, "exit"),
+    ("^exit$", command_exitFrame, "exit"),
+    ("^list$", command_listFrames, "list"),
+    ("^!!$", command_exitEditor, "!!"),
+    ("^new *(.*)$", command_newFrame, "new [fileName]"),
     ("^help$", command_help, "help"),
 ]
 
