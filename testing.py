@@ -15,14 +15,19 @@ columns = 0
 debuging = True
 if debuging:
     import logging
-    logging.basicConfig(filename="debug.log",level=logging.INFO)
+
+    logging.basicConfig(filename="debug.log", level=logging.INFO)
 
 
 def debug(func):
     def doStuff(*args, **kwargs):
         if debuging:
-            logging.info(str(args), str(kwargs))
-        func(*args, **kwargs)
+            logging.info((str(func) + "(" + str(args) + str(kwargs) + ")"))
+        R = func(*args, **kwargs)
+        if debuging:
+            logging.warning(str(R))
+        return R
+
     return doStuff
 
 
@@ -84,6 +89,7 @@ def JT_deleteLine(frame, number):
             break
 
 
+@debug
 def JT_addLine(frame, line):
     frame.lines.append(Line(len(frame.lines) + 1 * 10, line))
 
@@ -93,6 +99,7 @@ def JT_addLines(frame, texts):
         JT_addLine(frame, line)
 
 
+@debug
 def JT_addNumberLine(frame, number, text):
     for line in frame.lines:
         if line.lineNumber == number:
@@ -113,7 +120,7 @@ class Frame:
         size=(0, 0),
         commands=[],
         lines=[],
-        visible=True,
+        visible=False,
         start=0,
         flow=False,
     ):
@@ -129,6 +136,10 @@ class Frame:
         self.flow = flow
         self.error = ""
 
+    def __repr__(self) -> str:
+        return f"<Frame @ {id(self)}>"
+
+    @debug
     def draw_Title(self):
         innerSpace = 6 + (len(self.name) + 3 + len(str(len(self.lines))))
         Title_Bar = (
@@ -147,6 +158,7 @@ class Frame:
         else:
             return text
 
+    @debug
     def draw_Lines(self):
         sorted = JT_viewPort(self)[self.start :]
         for y, line in enumerate(sorted):
@@ -191,12 +203,17 @@ class frameManager:
         self.activeFrame = -1
         self.commands = commands
 
+    def __repr__(self) -> str:
+        return "frameManager"
+
+    @debug
     def addFrame(self, frame):
         frame.managerCommands = self.commands
         frame.manager = self
         self.frames.append(frame)
         self.activeFrame = self.frames.index(frame)
 
+    @debug
     def newFrame(self):
         temp = Frame("temp")
         self.addFrame(temp)
@@ -220,6 +237,7 @@ def command_addNumberedLine(frame, groups):
     JT_addNumberLine(frame, number, line)
 
 
+@debug
 def command_renumber(frame, groups):
     JT_renumber(frame)
 
@@ -338,9 +356,7 @@ if __name__ == "__main__":
     manager.addFrame(_Frame)
     while manager.activeFrame != -1:
         activeFrame = manager.active()
-        for main_frame in manager.frames:
-            if main_frame.visible:
-                main_frame.draw()
+        activeFrame.draw()
         if activeFrame.flow:
             userInput = activeFrame.prompt("Flow> ")
             if userInput == "??":
