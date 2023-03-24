@@ -229,6 +229,12 @@ class frameManager:
     def active(self):
         return self.getFrame(self.activeFrame)
 
+    def frameLookup(self, name):
+        for frame in self.frames:
+            if frame.name == name:
+                return self.frames.index(frame)
+        return -1
+
     @debug
     def getFrame(self, number):
         return self.frames[number]
@@ -407,12 +413,32 @@ def command_newFrame(manager, groups):
             JT_renumber(newFrame)
 
 
+def command_switch(manager, groups):
+    """switch to the given frame number or name( $main)"""
+    frameId = groups[0]
+    activeFrame = manager.active()
+    if activeFrame.name == "all frames":
+        activeLines = activeFrame.lines
+        temp = JT_findIndex(activeLines, int(frameId))
+        print(temp)
+        manager.activeFrame = temp
+    elif frameId.startswith("$"):
+        frameNumber = manager.frameLookup(frameId[1:])
+        if frameNumber != -1:
+            manager.activeFrame = frameNumber
+        else:
+            activeFrame.error = f"Frame {frameId} not found"
+    else:
+        manager.activeFrame = frameNumber
+
+
 command_Frame = [
     ("^ls$", command_listFiles, "ls"),
     ("^exit$", command_exitFrame, "exit"),
     ("^list$", command_listFrames, "list"),
     ("^!!$", command_exitEditor, "!!"),
     ("^new *(.*)$", command_newFrame, "new [fileName]"),
+    ("^switch (\d+|\$.*)$", command_switch, "switch frameNumber"),
     ("^help$", command_help, "help"),
 ]
 
