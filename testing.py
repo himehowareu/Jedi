@@ -6,13 +6,11 @@
 # import JediTricks
 import os, sys, re
 
-# from commands import editor as editorCommands
-# from commands import Frame as frameCommands
 
 lines = 1
 columns = 0
 
-debuging = True
+debuging = False
 if debuging:
     import logging
 
@@ -24,7 +22,7 @@ def debug(func):
         if debuging:
             logging.info((str(func) + "(" + str(args) + str(kwargs) + ")"))
         R = func(*args, **kwargs)
-        if debuging:
+        if debuging and R:
             logging.warning(str(R))
         return R
 
@@ -112,6 +110,10 @@ def JT_unnumberedLines(frame):
     return list(map((lambda x: (x.text)), frame.lines))
 
 
+def JT_help(commands):
+    pass
+
+
 class Frame:
     def __init__(
         self,
@@ -119,14 +121,13 @@ class Frame:
         position=(0, 0),
         size=(0, 0),
         commands=[],
-        lines=[],
         visible=False,
         start=0,
         flow=False,
     ):
         self.name = name
         self.commands = commands
-        self.lines = lines
+        self.lines = []
         self.visible = visible
         self.startView = 0
         if size == (0, 0):
@@ -219,9 +220,11 @@ class frameManager:
         self.addFrame(temp)
         return self.frames.index(temp)
 
+    @debug
     def active(self):
         return self.getFrame(self.activeFrame)
 
+    @debug
     def getFrame(self, number):
         return self.frames[number]
 
@@ -239,10 +242,12 @@ def command_addNumberedLine(frame, groups):
 
 @debug
 def command_renumber(frame, groups):
+    """renumbers the frame"""
     JT_renumber(frame)
 
 
 def command_openFile(frame, groups):
+    """opens file [file name]"""
     if groups[0] == "":
         path = frame.prompt("Files ? >")
     else:
@@ -259,6 +264,7 @@ def command_openFile(frame, groups):
 
 
 def command_saveFile(frame, groups):
+    """saves file [file name]"""
     if groups[0] == "":
         path = frame.prompt("Save Files As ? >")
     else:
@@ -270,6 +276,7 @@ def command_saveFile(frame, groups):
 
 
 def command_deleteLine(frame, groups):
+    """deletes the lines"""
     start = int(groups[0])
     if groups[1] != None:
         stop = int(groups[1])
@@ -280,6 +287,7 @@ def command_deleteLine(frame, groups):
 
 
 def command_clearLines(frame, groups):
+    """clears the frame !! all data is lost !!"""
     if groups[0] == "yes":
         frame.lines = []
     elif frame.prompt("Clear lines [yes/no] ? ") == "yes":
@@ -287,6 +295,7 @@ def command_clearLines(frame, groups):
 
 
 def command_gotoLine(frame, groups):
+    """go to the line given"""
     target = int(groups[0]) // 10 - 1
     totalLines = len(frame.lines)
     if target > totalLines:
@@ -295,10 +304,12 @@ def command_gotoLine(frame, groups):
 
 
 def command_gotoHome(frame, groups):
+    """brings you to the start of the file"""
     frame.start = 0
 
 
 def command_replace(frame, groups):
+    """replce [target] [to]"""
     if groups[0] == "":
         target = frame.prompt("what would you like to replace ?")
     else:
@@ -313,6 +324,7 @@ def command_replace(frame, groups):
 
 
 def command_enableFlow(frame, groups):
+    """this command lets you continusely type until you enter ??"""
     frame.flow = True
 
 
@@ -339,6 +351,15 @@ def command_listFiles(manager, groups):
 
 def command_exitEditor(manager, groups):
     manager.remove(manager.active())
+
+
+def command_help(manager, groups):
+    frameID = manager.newFrame()
+    frame = manager.getFrame(frameID)
+    frame.name = "help"
+    JT_addLine(frame, "Editor commands ")
+    JT_addLines(frame, JT_help(command_editor))
+    JT_addlines(JT_help(command_Frame))
 
 
 command_Frame = [
