@@ -10,20 +10,24 @@ import os, sys, re
 lines = 1
 columns = 0
 
-debuging = False
+debuging = True
 if debuging:
     import logging
 
-    logging.basicConfig(filename="debug.log", level=logging.INFO)
+    logging.basicConfig(
+        filename="debug.log",
+        level=logging.NOTSET,
+        format="%(levelname)s:%(lineno)s:%(msg)s",
+    )
 
 
 def debug(func):
     def doStuff(*args, **kwargs):
         if debuging:
-            logging.info((str(func) + "(" + str(args) + str(kwargs) + ")"))
+            logging.info(f"<{func.__name__}>({args} , {kwargs})")
         R = func(*args, **kwargs)
         if debuging and R:
-            logging.warning(str(R))
+            logging.debug(str(R))
         return R
 
     return doStuff
@@ -183,6 +187,8 @@ class Frame:
                 break
             JT_put((y + 2, 0), self.tunicate(line))
         if self.error != "":
+            if debuging:
+                logging.error(self.error)
             JT_put(
                 (self.size[lines] - 2, (self.size[columns] - len(self.error)) // 2),
                 self.error,
@@ -193,7 +199,10 @@ class Frame:
     def prompt(self, text="input >"):
         pos = (self.size[lines], 0)
         JT_move_cursor(pos)
-        return input(text)
+        text = input(text)
+        if debuging:
+            logging.warning(text)
+        return text
 
     @debug
     def draw(self):
