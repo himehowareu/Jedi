@@ -46,33 +46,39 @@ def JT_move_cursor(position):
     print("\033[%d;%dH" % (column, line), end="")
 
 
+@debug
 def JT_clear_terminal():
     print(chr(27) + "[2J", end="")
     JT_move_cursor((0, 0))
 
 
+@debug
 def JT_put(position, text):
     JT_move_cursor(position)
     print(text, end="")
 
 
+@debug
 def JT_sort_Lines(rawLines):
     rawLines.sort(key=lambda x: x.lineNumber)
     return rawLines
 
 
+@debug
 def JT_findIndex(lines, number):
     for n, line in enumerate(lines):
         if line.lineNumber == number:
             return n
 
 
+@debug
 def JT_viewPort(frame):
     lines = frame.lines
     start = frame.startView
     return JT_sort_Lines(lines)[JT_findIndex(lines, start) :]
 
 
+@debug
 def JT_renumber(frame):
     out = []
     for num, line in enumerate(frame.lines):
@@ -80,6 +86,7 @@ def JT_renumber(frame):
     frame.lines = out
 
 
+@debug
 def JT_deleteLine(frame, number):
     for line in frame.lines:
         if line.lineNumber == number:
@@ -92,6 +99,7 @@ def JT_addLine(frame, line):
     frame.lines.append(Line(len(frame.lines) + 1 * 10, line))
 
 
+@debug
 def JT_addLines(frame, texts):
     for line in texts:
         JT_addLine(frame, line)
@@ -106,10 +114,12 @@ def JT_addNumberLine(frame, number, text):
     frame.lines.append(Line(number, text))
 
 
+@debug
 def JT_unnumberedLines(frame):
     return list(map((lambda x: (x.text)), frame.lines))
 
 
+@debug
 def JT_help(commands):
     out = []
     for command in commands:
@@ -155,6 +165,7 @@ class Frame:
         )
         JT_put((0, 0), Title_Bar)
 
+    @debug
     def tunicate(self, line):
         text = str(line)
         # if self.beta:
@@ -178,16 +189,19 @@ class Frame:
             )
             self.error = ""
 
+    @debug
     def prompt(self, text="input >"):
         pos = (self.size[lines], 0)
         JT_move_cursor(pos)
         return input(text)
 
+    @debug
     def draw(self):
         JT_clear_terminal()
         self.draw_Title()
         self.draw_Lines()
 
+    @debug
     def send(self, userInput):
         for signature, command, name in self.commands:
             if groupedInput := re.match(signature, userInput):
@@ -229,6 +243,7 @@ class frameManager:
     def active(self):
         return self.getFrame(self.activeFrame)
 
+    @debug
     def frameLookup(self, name):
         for frame in self.frames:
             if frame.name == name:
@@ -239,12 +254,14 @@ class frameManager:
     def getFrame(self, number):
         return self.frames[number]
 
+    @debug
     def remove(self, frame):
         if self.frames.index(frame) == len(self.frames) - 1:
             self.activeFrame -= 1
         self.frames.remove(frame)
 
 
+@debug
 def command_addNumberedLine(frame, groups):
     """adds a line at the line number to the current frame"""
     (number, line) = groups
@@ -258,6 +275,7 @@ def command_renumber(frame, groups):
     JT_renumber(frame)
 
 
+@debug
 def command_openFile(frame, groups):
     """opens file [file name]"""
     if groups[0] == "":
@@ -275,6 +293,7 @@ def command_openFile(frame, groups):
         JT_renumber(frame)
 
 
+@debug
 def command_saveFile(frame, groups):
     """saves file [file name]"""
     if groups[0] == "":
@@ -287,6 +306,7 @@ def command_saveFile(frame, groups):
         file.writelines(lines)
 
 
+@debug
 def command_deleteLine(frame, groups):
     """deletes the lines"""
     start = int(groups[0])
@@ -298,6 +318,7 @@ def command_deleteLine(frame, groups):
         JT_deleteLine(frame, start)
 
 
+@debug
 def command_clearLines(frame, groups):
     """clears the frame !! all data is lost !!"""
     if groups[0] == "yes":
@@ -306,6 +327,7 @@ def command_clearLines(frame, groups):
         frame.lines = []
 
 
+@debug
 def command_gotoLine(frame, groups):
     """go to the line given"""
     target = int(groups[0]) // 10 - 1
@@ -315,11 +337,13 @@ def command_gotoLine(frame, groups):
     frame.start = target
 
 
+@debug
 def command_gotoHome(frame, groups):
     """brings you to the start of the file"""
     frame.start = 0
 
 
+@debug
 def command_replace(frame, groups):
     """replce [target] [to]"""
     if groups[0] == "":
@@ -335,6 +359,7 @@ def command_replace(frame, groups):
         frame.lines[lineNumber].text = line.text.replace(target, to)
 
 
+@debug
 def command_enableFlow(frame, groups):
     """this command lets you continually type until you enter ??"""
     frame.flow = True
@@ -358,6 +383,7 @@ command_editor = [
 ]
 
 
+@debug
 def command_listFiles(manager, groups):
     """makes a new frame with a list of files in the current folder"""
     frameID = manager.newFrame()
@@ -366,16 +392,19 @@ def command_listFiles(manager, groups):
     JT_addLines(frame, os.listdir("."))
 
 
+@debug
 def command_exitEditor(manager, groups):
     """closes the current frame"""
     exit("need to make better")
 
 
+@debug
 def command_exitFrame(manager, groups):
     """exits the editor"""
     manager.remove(manager.active())
 
 
+@debug
 def command_help(manager, groups):
     """displays this help page"""
     frameID = manager.newFrame()
@@ -386,6 +415,7 @@ def command_help(manager, groups):
     JT_addLines(frame, JT_help(command_Frame))
 
 
+@debug
 def command_listFrames(manager, groups):
     """displays all the frames open"""
     frameID = manager.newFrame()
@@ -395,6 +425,7 @@ def command_listFrames(manager, groups):
         JT_addLine(newFrame, frame.name)
 
 
+@debug
 def command_newFrame(manager, groups):
     """opens a new frame and optionally with file loaded"""
     frameID = manager.newFrame()
@@ -413,6 +444,7 @@ def command_newFrame(manager, groups):
             JT_renumber(newFrame)
 
 
+@debug
 def command_switch(manager, groups):
     """switch to the given frame number or name( $main)"""
     frameId = groups[0]
