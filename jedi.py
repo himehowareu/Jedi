@@ -1,38 +1,39 @@
 #!/usr/bin/pyhton3
 
-# rewriting Jedi to be extenable
-
-import os, sys, re
+import os, re
 
 
 lines = 1
 columns = 0
 
-debuging = True
-if debuging:
+debugging = False
+if debugging:
     import logging
 
     logging.basicConfig(
         filename="debug.log",
         level=logging.NOTSET,
-        format="%(levelname)s:%(lineno)s:%(msg)s",
+        format="%(levelname)s::%(msg)s",
     )
 
 
 def debug(func):
     def doStuff(*args, **kwargs):
-        if debuging:
+        if debugging:
             logging.info(f"<{func.__name__}>({args} , {kwargs})")
         R = func(*args, **kwargs)
-        if debuging and R:
+        if debugging and R:
             logging.debug(str(R))
         return R
 
+    doStuff.__doc__ = func.__doc__
     return doStuff
 
 
 class Line:
     def __init__(self, lineNumber=0, text=""):
+        if debugging:
+            logging.critical(f"<New Line>{lineNumber,text}")
         self.text = text
         self.lineNumber = lineNumber
 
@@ -142,6 +143,8 @@ class Frame:
         start=0,
         flow=False,
     ):
+        if debugging:
+            logging.critical(f"<New Frame>{name,size,commands,visible,start,flow}")
         self.name = name
         self.commands = commands
         self.lines = []
@@ -159,19 +162,14 @@ class Frame:
 
     @debug
     def draw_Title(self):
-        innerSpace = 6 + (len(self.name) + 3 + len(str(len(self.lines))))
-        Title_Bar = (
-            (self.name + " ~ " + str(len(self.lines)))
-            .center(innerSpace, " ")
-            .center(self.size[columns], "=")
-        )
+        title = f"{self.name}{self.manager.getPosition(self)} ~ {len(self.lines)}"
+        innerSpace = 6 + len(title)
+        Title_Bar = title.center(innerSpace, " ").center(self.size[columns], "=")
         JT_put((0, 0), Title_Bar)
 
     @debug
     def tunicate(self, line):
         text = str(line)
-        # if self.beta:
-        #     text = formate(text)
         if len(text) > self.size[columns]:
             return text[: self.size[columns] - 1] + "~"
         else:
@@ -185,7 +183,7 @@ class Frame:
                 break
             JT_put((y + 2, 0), self.tunicate(line))
         if self.error != "":
-            if debuging:
+            if debugging:
                 logging.error(self.error)
             JT_put(
                 (self.size[lines] - 2, (self.size[columns] - len(self.error)) // 2),
@@ -198,7 +196,7 @@ class Frame:
         pos = (self.size[lines], 0)
         JT_move_cursor(pos)
         text = input(text)
-        if debuging:
+        if debugging:
             logging.warning(text)
         return text
 
@@ -226,6 +224,8 @@ class Frame:
 
 class frameManager:
     def __init__(self, commands):
+        if debugging:
+            logging.critical(f"<New Frame Manager>({commands})")
         self.frames = []
         self.activeFrame = -1
         self.commands = commands
@@ -238,13 +238,20 @@ class frameManager:
         frame.managerCommands = self.commands
         frame.manager = self
         self.frames.append(frame)
-        self.activeFrame = self.frames.index(frame)
+        self.activeFrame = self.index(frame)
+
+    @debug
+    def getPosition(self, frame):
+        return f"({self.frames.index(frame)}/{len(self.frames)})"
+
+    def index(self, frame):
+        return self.frames.index(frame)
 
     @debug
     def newFrame(self):
         temp = Frame("temp")
         self.addFrame(temp)
-        return self.frames.index(temp)
+        return self.index(temp)
 
     @debug
     def active(self):
@@ -254,7 +261,7 @@ class frameManager:
     def frameLookup(self, name):
         for frame in self.frames:
             if frame.name == name:
-                return self.frames.index(frame)
+                return self.index(frame)
         return -1
 
     @debug
@@ -457,18 +464,20 @@ def command_switch(manager, groups):
     frameId = groups[0]
     activeFrame = manager.active()
     if activeFrame.name == "all frames":
-        activeLines = activeFrame.lines
-        temp = JT_findIndex(activeLines, int(frameId))
-        print(temp)
-        manager.activeFrame = temp
-    elif frameId.startswith("$"):
+        if frameId.isnumeric():
+            activeLines = activeFrame.lines
+            temp = JT_findIndex(activeLines, int(frameId))
+            print(temp)
+            manager.activeFrame = temp
+            return
+    if frameId.startswith("$"):
         frameNumber = manager.frameLookup(frameId[1:])
         if frameNumber != -1:
             manager.activeFrame = frameNumber
         else:
             activeFrame.error = f"Frame {frameId} not found"
     else:
-        manager.activeFrame = frameNumber
+        manager.activeFrame = int(frameId)
 
 
 command_Frame = [

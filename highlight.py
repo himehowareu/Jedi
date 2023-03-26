@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-"""Add syntax highlighting to Python source code"""
 
 __author__ = "Raymond Hettinger"
 
@@ -8,16 +7,12 @@ import functools
 import keyword
 import tokenize
 
-#### Analyze Python Source #################################
-
 
 def is_builtin(s):
-    "Return True if s is the name of a builtin"
     return hasattr(builtins, s)
 
 
 def combine_range(lines, start, end):
-    "Join content from a range of lines between start and end"
     (srow, scol), (erow, ecol) = start, end
     if srow == erow:
         return lines[srow - 1][scol:ecol], end
@@ -26,9 +21,7 @@ def combine_range(lines, start, end):
 
 
 def analyze_python(source):
-    """Generate and classify chunks of Python for syntax highlighting.
-    Yields tuples in the form: (category, categorized_text).
-    """
+
     lines = source.splitlines(True)
     lines.append("")
     readline = functools.partial(next, iter(lines), "")
@@ -68,8 +61,6 @@ def analyze_python(source):
     yield "", line_upto_token
 
 
-#### ANSI Output ###########################################
-
 colors = {
     "comment": ("\033[0;31m", "\033[0m"),
     "string": ("\033[0;36m", "\033[0m"),
@@ -85,8 +76,6 @@ colors = {
 
 
 def ansi_highlight(classified_text):
-    "Add syntax highlighting to source code using ANSI escape sequences"
-    # http://en.wikipedia.org/wiki/ANSI_escape_code
     result = []
     for kind, text in classified_text:
         opener, closer = colors.get(kind, ("", ""))
